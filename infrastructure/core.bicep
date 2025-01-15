@@ -1,13 +1,21 @@
-param location string = 'newzealandnorth'
+param location string
 param prefix string
 param vnetSettings object = {
   addressPrefixes: [
-    '10.0.0.0/20'
+    '10.0.0.0/19'
   ]
   subnets: [
     {
       name: 'subnet1'
       addressPrefix: '10.0.0.0/22'
+    }
+    {
+      name: 'acaAppSubnet'
+      addressPrefix: '10.0.8.0/21'
+    }
+    {
+      name: 'acaControlPlaneSubnet'
+      addressPrefix: '10.0.16.0/21'
     }
   ]
 }
@@ -17,6 +25,20 @@ resource networkSecurityGroup 'Microsoft.Network/networkSecurityGroups@2019-11-0
   location: location
   properties: {
     securityRules: [
+      {
+        name: 'allowhttpsinbound'
+        properties: {
+          priority: 200
+          direction: 'Inbound'
+          access: 'Allow'
+          protocol: 'Tcp'
+          description: 'Allow HTTPS inbound traffic'
+          sourcePortRange: '*'
+          destinationPortRange: '443'
+          sourceAddressPrefix: '*'
+          destinationAddressPrefix: '*'
+        }
+      }
     ]
   }
 }
@@ -113,7 +135,7 @@ resource cosmosPrivateDnsNetworkLink 'Microsoft.Network/privateDnsZones/virtualN
   }
 }
 
-resource cosmosPrivateEndpoint 'Microsoft.Network/privateEndpoints@2019-04-01' = {
+resource cosmosPrivateEndpoint 'Microsoft.Network/privateEndpoints@2020-03-01' = {
   name: '${prefix}-cosmos-pe'
   location: location
   properties: {
@@ -147,6 +169,41 @@ resource cosmosPrivateEndpointDnsLink 'Microsoft.Network/privateEndpoints/privat
         }
       }
     ]
+  }
+}
+
+resource containerRegistry 'Microsoft.ContainerRegistry/registries@2021-06-01-preview' = {
+  name: '${replace(prefix, '-', '')}markpacr'
+  location: location
+  sku: {
+    name: 'Basic'
+  }
+  properties: {
+    adminUserEnabled: true
+  }
+}
+
+resource keyVault 'Microsoft.KeyVault/vaults@2021-10-01' = {
+  name: '${prefix}-mark-kv2'
+  location: location
+  properties: {
+    enabledForDeployment: true
+    enabledForTemplateDeployment: true
+    enabledForDiskEncryption: true
+    enableRbacAuthorization: true
+    tenantId: tenant().tenantId
+    sku: {
+      name: 'standard'
+      family: 'A'
+    }
+  }
+}
+
+resource keyVaultSecret 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
+  name: 'arcAdminPassword'
+  parent: keyVault
+  properties: {
+    value: containerRegistry.listCredentials().passwords[0].value
   }
 }
 
