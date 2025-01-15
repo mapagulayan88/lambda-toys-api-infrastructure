@@ -224,11 +224,9 @@ resource stateContainerName 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/
 }
 
 output vNetId string = virtualNetwork.id
-output containerRegistryName string = containerRegistry.name
-output containerRegistryUsername string = containerRegistry.name
+output vNetName string = virtualNetwork.name
 output SecretKeyVaultName string = keyVault.name
-output ContainerRegistrySecret string = keyVaultSecret.name
 output CosmosAccountName string = cosmosDbAccount.name
-output CosmosDbName string = sqlDb.name
+output ComosDbName string = sqlDb.name
 output CosmosStateContainerName string = stateContainerName.name
 output CosmosSqlContainerName string = sqlContainerName.name

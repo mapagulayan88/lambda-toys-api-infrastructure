@@ -5,6 +5,7 @@ param capacity int = 0
 param externalResourcesRg string
 param certKeyVaultName string
 param certKeyVaultUrl string
+param base64_api string
 
 resource apimUserIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' = {
   name: '${prefix}-apim0-mi'

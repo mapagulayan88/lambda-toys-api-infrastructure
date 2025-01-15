@@ -10,13 +10,20 @@ param cosmosAccountName string
 param cosmosDbName string
 param cosmosContainerName string
 
-resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2020-10-01' = {
+resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
   name: '${prefix}-la-workspace'
   location: location
   properties: {
-    /*sku: {name: 'Standard'}*/
+    sku: {
+      name: 'Standard'
+    }
   }
 }
+resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2021-03-15' existing ={
+  name: cosmosAccountName
+  
+}
+var cosmosDbKey = cosmosDbAccount.listKeys().primaryMasterKey
 
 resource env 'Microsoft.App/managedEnvironments@2023-05-01' = {
   name: '${prefix}-container-env'
@@ -29,47 +36,39 @@ resource env 'Microsoft.App/managedEnvironments@2023-05-01' = {
         sharedKey: logAnalyticsWorkspace.listKeys().primarySharedKey
       }
     }
-   /*vnetConfiguration:{
-     infrastructureSubnetId: resourceId('Microsoft.Network/virtualNetworks/subnets', vNetName,'dev-vnet')
-    }*/
+   vnetConfiguration:{
+     infrastructureSubnetId: resourceId('Microsoft.Network/virtualNetworks/subnets', vNetName,'acaControlPlaneSubnet')
+    }
   }
-}
-
-resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2021-03-15' existing = {
-  name: cosmosAccountName
-}
-
-var cosmosDbKey = cosmosDbAccount.listKeys().primaryMasterKey
-
-resource daprStateStore 'daprComponents@2023-05-01' = {
-  name: 'statestore'
-  properties:{
-    componentType: 'state.azure.cosmosdb'
-    version: 'v1'
-    scopes: [
-      'lambdaapi'
-    ]
-    metadata: [
-      {
-        name: 'url'
-        value: 'https://${cosmosAccountName}.documents.azure.com:443/'
+  resource daprStateStore 'daprComponents@2023-05-01' = {
+      name: 'statestore'
+      properties:{
+        componentType: 'state.azure.cosmosdb'
+        version: 'v1'
+        scopes: [
+          'lambdaapi'
+        ]
+        metadata: [
+          {
+            name: 'url'
+            value: 'https://${cosmosAccountName}.documents.azure.com:443/'
+          }
+          {
+            name: 'database'
+            value: cosmosDbName
+          }
+          {
+            name: 'collection'
+            value: cosmosContainerName
+          }
+          {
+            name: 'masterKey'
+            value: cosmosDbKey
+          }
+        ]
       }
-      {
-        name: 'database'
-        value: cosmosDbName
-      }
-      {
-        name: 'collection'
-        value: cosmosContainerName
-      }
-      {
-        name: 'masterKey'
-        value: cosmosDbKey
-      }
-    ]
+    }
   }
-}
-
 
 resource apiApp 'Microsoft.App/containerApps@2023-05-01' = {
   name:'${prefix}-api-container'
@@ -117,6 +116,5 @@ resource apiApp 'Microsoft.App/containerApps@2023-05-01' = {
       }
     }
   }
-}
 
-output apiUrl string = apiApp.properties.configuration.ingress.fqdn
+}
