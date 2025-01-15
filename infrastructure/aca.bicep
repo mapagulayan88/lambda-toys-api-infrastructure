@@ -1,6 +1,6 @@
 param location string
 param prefix string
-param vNetId string
+param vNetName string
 param containerRegistryName string
 param containerRegistryUsername string
 @secure()
@@ -69,7 +69,7 @@ resource daprStateStore 'daprComponents@2023-05-01' = {
     ]
   }
 }
-}
+
 
 resource apiApp 'Microsoft.App/containerApps@2023-05-01' = {
   name:'${prefix}-api-container'
@@ -118,3 +118,5 @@ resource apiApp 'Microsoft.App/containerApps@2023-05-01' = {
     }
   }
 }
+
+output apiUrl string = apiApp.properties.configuration.ingress.fqdn

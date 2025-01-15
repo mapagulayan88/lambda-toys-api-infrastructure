@@ -6,7 +6,10 @@
         "value": "westeurope"
       },
       "prefix": {
-        "value": "markp-lmbd-dev"
+        "value": "markp168d"
+      },
+      "containerVersion": {
+        "value": "1.7.0"
       }
     }
   }

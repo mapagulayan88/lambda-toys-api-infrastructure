@@ -5,15 +5,15 @@ param vnetSettings object = {
     '10.0.0.0/19'
   ]
   subnets: [
-    {
+    { 
       name: 'subnet1'
-      addressPrefix: '10.0.0.0/22'
+      addressPrefix: '10.0.0.0/21'
     }
-    {
+    { 
       name: 'acaAppSubnet'
       addressPrefix: '10.0.8.0/21'
     }
-    {
+    { 
       name: 'acaControlPlaneSubnet'
       addressPrefix: '10.0.16.0/21'
     }
@@ -207,3 +207,28 @@ resource keyVaultSecret 'Microsoft.KeyVault/vaults/secrets@2019-09-01' = {
   }
 }
 
+resource stateContainerName 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2023-11-15' = {
+  parent: sqlDb 
+  name: '${prefix}-state'
+  properties: {
+    resource: {
+      id: '${prefix}-state'
+      partitionKey: {
+        paths: [
+          '/partitionKey'
+        ]
+      }
+    }
+    
+  }
+}
+
+output vNetId string = virtualNetwork.id
+output containerRegistryName string = containerRegistry.name
+output containerRegistryUsername string = containerRegistry.name
+output SecretKeyVaultName string = keyVault.name
+output ContainerRegistrySecret string = keyVaultSecret.name
+output CosmosAccountName string = cosmosDbAccount.name
+output CosmosDbName string = sqlDb.name
+output CosmosStateContainerName string = stateContainerName.name
+output CosmosSqlContainerName string = sqlContainerName.name
