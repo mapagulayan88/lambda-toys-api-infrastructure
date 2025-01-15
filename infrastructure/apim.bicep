@@ -2,6 +2,26 @@ param location string
 param prefix string
 param tier string = 'Consumption'
 param capacity int = 0
+param externalResourcesRg string
+param certKeyVaultName string
+param certKeyVaultUrl string
+
+resource apimUserIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' = {
+  name: '${prefix}-apim0-mi'
+  location: location
+}
+
+module apimExternalResources 'externalResources.bicep' ={
+  name:'${prefix}-apim-external'
+  scope: resourceGroup(externalResourcesRg)
+  params:{
+    zoneName:'lambdatoys.com'
+    recordName: '${prefix}-apim'
+    cName: '${prefix}-apim.azure-api.net'
+    managedIdentityId: apimUserIdentity.properties.principalId
+    keyVaultName: certKeyVaultName
+  }
+}
 
 resource apiManagementInstance 'Microsoft.ApiManagement/service@2021-08-01' = {
   name: '${prefix}-apim'
