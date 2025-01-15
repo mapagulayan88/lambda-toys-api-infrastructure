@@ -1,0 +1,22 @@
+{
+"$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+"contentVersion": "1.0.0.0",
+"parameters": {
+  "location": {
+    "value": "westeurope"
+  },
+  "prefix": {
+    "value": "lmbd-dev"
+  },
+  "certKeyVaultName": {
+    "value": "deploymentkvsc01"
+  },
+  "externalResourcesRg": {
+    "value": "samcogancore"
+  },
+  "certKeyVaultUrl": {
+    "value": "https://deploymentkvsc01.vault.azure.net/secrets/lambdatoys"
+  }
+
+}
+}   
